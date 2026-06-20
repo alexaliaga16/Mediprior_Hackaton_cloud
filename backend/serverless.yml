@@ -42,12 +42,15 @@ functions:
           path: /results/{jobId}
           method: GET
   retrier:
-    handler: functions/retrier.py
+    handler: functions/retrier.handler
     timeout: 29
     events:
       - httpApi:
           path: /retry-failed
           method: POST
+      - httpApi:
+          path: /retry-failed
+          method: OPTIONS
 
 resources:
   Resources:
