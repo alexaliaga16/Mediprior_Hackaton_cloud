@@ -5,7 +5,7 @@ import ProgressBar from './components/ProgressBar'
 import ResultsTable from './components/ResultsTable'
 import './App.css'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://h2fki8xkz7.execute-api.us-east-1.amazonaws.com'
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState('upload') // upload, processing, results
