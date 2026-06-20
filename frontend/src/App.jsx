@@ -4,6 +4,7 @@ import UploadCSV from './components/UploadCSV'
 import ProgressBar from './components/ProgressBar'
 import ResultsTable from './components/ResultsTable'
 import MetricsDashboard from './components/MetricsDashboard'
+import RetryButton from './components/RetryButton'
 import './App.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://h2fki8xkz7.execute-api.us-east-1.amazonaws.com'
@@ -141,6 +142,7 @@ export default function App() {
               <h2>Resultados de Priorización</h2>
             </div>
             {metrics && <MetricsDashboard metrics={metrics} total={jobData?.totalPatients} />}
+            <RetryButton patients={patients} jobId={jobId} />
             {patients.length > 0 ? (
               <ResultsTable patients={patients} />
             ) : (
