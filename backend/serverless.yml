@@ -3,30 +3,11 @@ service: mediprior
 
 provider:
   name: aws
-  runtime: python3.11
+  runtime: python3.10
   region: us-east-1
   stage: dev
   iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:PutItem
-            - dynamodb:GetItem
-            - dynamodb:UpdateItem
-            - dynamodb:Query
-          Resource:
-            - !GetAtt JobsTable.Arn
-            - !GetAtt PatientsTable.Arn
-        - Effect: Allow
-          Action:
-            - sqs:SendMessage
-            - sqs:ReceiveMessage
-            - sqs:DeleteMessage
-            - sqs:GetQueueAttributes
-          Resource:
-            - !GetAtt MainQueue.Arn
-            - !GetAtt DeadLetterQueue.Arn
+    role: arn:aws:iam::430968800564:role/LabRole
   environment:
     JOBS_TABLE: !Ref JobsTable
     PATIENTS_TABLE: !Ref PatientsTable
@@ -40,7 +21,6 @@ functions:
       - httpApi:
           path: /upload
           method: POST
-          cors: true
 
   processor:
     handler: functions/processor.handler
@@ -60,7 +40,6 @@ functions:
       - httpApi:
           path: /results/{jobId}
           method: GET
-          cors: true
 
 resources:
   Resources:
@@ -106,3 +85,9 @@ resources:
             KeyType: HASH
           - AttributeName: patientId
             KeyType: RANGE
+
+plugins:
+  - serverless-python-requirements
+custom:
+  pythonRequirements:
+    dockerizePip: false
