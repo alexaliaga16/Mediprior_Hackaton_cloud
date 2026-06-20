@@ -12,6 +12,7 @@ provider:
     JOBS_TABLE: !Ref JobsTable
     PATIENTS_TABLE: !Ref PatientsTable
     SQS_QUEUE_URL: !Ref MainQueue
+    DLQ_URL: !Ref DeadLetterQueue
 
 functions:
   ingester:
@@ -40,6 +41,13 @@ functions:
       - httpApi:
           path: /results/{jobId}
           method: GET
+  retrier:
+    handler: functions/retrier.py
+    timeout: 29
+    events:
+      - httpApi:
+          path: /retry-failed
+          method: POST
 
 resources:
   Resources:
