@@ -34,7 +34,7 @@ Obtener key en https://console.groq.com/keys
 export GROQ_API_KEY=tu_groq_api_key
 ```
 
-## 4. Deploy del backend
+## 4. Deploy del backend (1 solo comando)
 
 ```bash
 cd backend
@@ -48,10 +48,36 @@ GET  https://{id}.execute-api.us-east-1.amazonaws.com/results/{jobId}
 POST https://{id}.execute-api.us-east-1.amazonaws.com/retry-failed
 ```
 
+Serverless Framework crea automáticamente:
+- Lambda ingester
+- Lambda processor
+- Lambda getter
+- Lambda retrier
+- SQS Main Queue
+- SQS Dead Letter Queue (DLQ)
+- DynamoDB tabla Jobs
+- DynamoDB tabla Patients
+- API Gateway
+
 ## 5. Deploy del frontend
 
+### Opción A: AWS Amplify (recomendado)
+
+1. Ir a AWS Amplify en la consola de AWS
+2. Click en "Crear nueva aplicación"
+3. Seleccionar GitHub → autorizar → elegir repo `Mediprior_Hackaton_cloud`
+4. Seleccionar rama `main`
+5. Configurar build:
+   - Comando: `cd frontend && npm install && npm run build`
+   - Directorio de salida: `frontend/dist`
+6. Click en "Guardar e implementar"
+
+URL pública: `https://main.d1x79kqokvl757.amplifyapp.com`
+
+### Opción B: S3 (alternativa)
+
 ```bash
-cd ../frontend
+cd frontend
 npm install
 npm run build
 
@@ -85,19 +111,24 @@ aws s3 website s3://mediprior-frontend \
   --error-document index.html
 ```
 
-## 6. Acceder al sistema
+URL pública: `http://mediprior-frontend.s3-website-us-east-1.amazonaws.com`
 
-```
-http://mediprior-frontend.s3-website-us-east-1.amazonaws.com
-```
+## 6. Probar el sistema
 
-## 7. Probar el sistema
-
-1. Descargar la plantilla de ejemplo desde el frontend
-2. O usar el CSV en `sample-data/pacientes_ejemplo.csv`
+1. Abrir la URL del frontend
+2. Descargar la plantilla de ejemplo o usar `sample-data/pacientes_ejemplo.csv`
 3. Subir el CSV desde el frontend
 4. Esperar 60-90 segundos para 25 pacientes
-5. Ver resultados priorizados por urgencia
+5. Ver resultados priorizados por urgencia con colores
+6. Si hay pacientes fallidos, usar el botón "Reintentar pacientes fallidos"
+
+## 7. Endpoints disponibles
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | /upload | Subir CSV de pacientes |
+| GET | /results/{jobId} | Obtener resultados del job |
+| POST | /retry-failed | Reprocesar pacientes de la DLQ |
 
 ## Notas importantes
 
@@ -105,3 +136,5 @@ http://mediprior-frontend.s3-website-us-east-1.amazonaws.com
 - Al expirar, renovar en Vocareum y volver al paso 2
 - La GROQ_API_KEY se debe exportar antes de cada `serverless deploy`
 - El sistema soporta máximo 30 pacientes por batch
+- El backend es 100% serverless — no hay servidores que administrar
+- Serverless Framework despliega toda la infraestructura en 1 comando
