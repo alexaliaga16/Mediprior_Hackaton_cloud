@@ -1,10 +1,9 @@
 import './ResultsTable.css'
 
 const URGENCY_CONFIG = {
-  CRITICO: { color: '#dc2626', label: '🔴 Crítico', priority: 1 },
-  URGENTE: { color: '#f59e0b', label: '🟠 Urgente', priority: 2 },
-  MODERADO: { color: '#0284c7', label: '🔵 Moderado', priority: 3 },
-  LEVE: { color: '#10b981', label: '🟢 Leve', priority: 4 },
+  CRITICO: { color: '#dc2626', label: 'Crítico', priority: 1 },
+  MODERADO: { color: '#f59e0b', label: 'Moderado', priority: 2 },
+  LEVE: { color: '#10b981', label: 'Leve', priority: 3 },
 }
 
 export default function ResultsTable({ patients }) {
@@ -26,8 +25,8 @@ export default function ResultsTable({ patients }) {
   return (
     <div className="results-wrapper">
       <div className="results-grid">
-        {sortedPatients.map((patient) => (
-          <PatientCard key={patient.patientId} patient={patient} />
+        {sortedPatients.map((patient, index) => (
+          <PatientCard key={patient.nombre ?? index} patient={patient} />
         ))}
       </div>
     </div>
@@ -56,11 +55,6 @@ function PatientCard({ patient }) {
       </div>
 
       <div className="card-body">
-        <div className="section">
-          <label>Síntomas reportados</label>
-          <p className="symptoms">{patient.sintomas}</p>
-        </div>
-
         <div className="section">
           <label>Especialidad recomendada</label>
           <p className="specialty">{patient.especialidad || 'No especificada'}</p>
