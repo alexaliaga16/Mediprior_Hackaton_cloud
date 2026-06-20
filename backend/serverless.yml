@@ -1,0 +1,108 @@
+org: potoncito
+service: mediprior
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: us-east-1
+  stage: dev
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:Query
+          Resource:
+            - !GetAtt JobsTable.Arn
+            - !GetAtt PatientsTable.Arn
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+            - sqs:ReceiveMessage
+            - sqs:DeleteMessage
+            - sqs:GetQueueAttributes
+          Resource:
+            - !GetAtt MainQueue.Arn
+            - !GetAtt DeadLetterQueue.Arn
+  environment:
+    JOBS_TABLE: !Ref JobsTable
+    PATIENTS_TABLE: !Ref PatientsTable
+    SQS_QUEUE_URL: !Ref MainQueue
+
+functions:
+  ingester:
+    handler: functions/ingester.handler
+    timeout: 29
+    events:
+      - httpApi:
+          path: /upload
+          method: POST
+          cors: true
+
+  processor:
+    handler: functions/processor.handler
+    timeout: 29
+    reservedConcurrency: 5
+    environment:
+      GROQ_API_KEY: ${env:GROQ_API_KEY}
+    events:
+      - sqs:
+          arn: !GetAtt MainQueue.Arn
+          batchSize: 1
+
+  getter:
+    handler: functions/getter.handler
+    timeout: 10
+    events:
+      - httpApi:
+          path: /results/{jobId}
+          method: GET
+          cors: true
+
+resources:
+  Resources:
+    MainQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: mediprior-main-queue
+        VisibilityTimeout: 120
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
+          maxReceiveCount: 3
+
+    DeadLetterQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: mediprior-dlq
+        MessageRetentionPeriod: 1209600
+
+    JobsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: mediprior-jobs
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: jobId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: jobId
+            KeyType: HASH
+
+    PatientsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: mediprior-patients
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: jobId
+            AttributeType: S
+          - AttributeName: patientId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: jobId
+            KeyType: HASH
+          - AttributeName: patientId
+            KeyType: RANGE
