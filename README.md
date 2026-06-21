@@ -1,5 +1,7 @@
 # MediPrior — Sistema de Priorización Clínica Asistida por IA
 
+**Demo: https://youtu.be/v8japI1dR-Y**
+
 > Hackathon UTEC · AWS + Groq · Junio 2026
 
 Sistema que permite a técnicos de salud en postas rurales del Perú subir una lista de pacientes en texto libre y recibir en segundos una priorización clínica asistida por IA, ordenada por nivel de urgencia.
